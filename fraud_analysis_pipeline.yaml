@@ -1,0 +1,39 @@
+name: fraud_analysis_pipeline
+description: "End-to-end fraud detection analytical pipeline orchestrating log ingestion, dbt transformations, and batch ML scoring."
+
+schedule:
+  interval: "0 0 * * *"
+  catchup: false
+
+default_environment: dev
+
+actions:
+  - name: ingestion_notebook
+    type: notebook
+    path: "notebooks/01_ingestion.ipynb"
+    engine:
+      type: dataproc_serverless
+      region: "us-central1"
+      resourceProfile:
+        inline:
+          version: "2.2"
+
+  - name: dbt_transformations
+    type: pipeline
+    path: "dbt_project"
+    dependsOn:
+      - ingestion_notebook
+
+  - name: batch_inference_notebook
+    type: notebook
+    path: "notebooks/03_inference.ipynb"
+    dependsOn:
+      - dbt_transformations
+    engine:
+      type: dataproc_serverless
+      region: "us-central1"
+      resourceProfile:
+        inline:
+          version: "2.2"
+          properties:
+            spark.jars: "gs://spark-lib/spanner/spark-3.5-spanner-1.4.0.jar"

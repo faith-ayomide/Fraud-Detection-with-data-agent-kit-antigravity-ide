@@ -1,0 +1,17 @@
+cymbal_fraud:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: oauth
+      project: "{{ env_var('PROJECT_ID', 'cymbal-fraud-detection') }}"
+      dataset: "{{ env_var('DATASET_NAME', 'transactions_dataset_evals') }}"
+      threads: 4
+      timeout_seconds: 300
+      location: us-central1
+      priority: interactive
+    local:
+      type: duckdb
+      path: "../data/cymbal_fraud.duckdb"
+      schema: transactions_dataset_evals
+      threads: 4

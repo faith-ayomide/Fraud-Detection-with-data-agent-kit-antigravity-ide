@@ -1,0 +1,9 @@
+environments:
+  dev:
+    project_id: "${PROJECT_ID}"
+    region: "us-central1"
+    composer_environment: "cymbal-airflow"
+    artifact_storage: "gs://${PROJECT_ID}-airflow-artifacts"
+    dataproc_serverless:
+      runtime_template: "fraud-pipeline-runtime"
+      region: "us-central1"

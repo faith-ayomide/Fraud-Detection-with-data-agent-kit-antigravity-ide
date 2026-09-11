@@ -1,0 +1,33 @@
+version: 2
+
+sources:
+  - name: transactions_dataset_evals
+    tables:
+      - name: raw_transactions
+      - name: dim_payers
+      - name: dim_payees
+
+models:
+  - name: stg_transactions
+    description: "Cleaned and deduplicated transaction logs."
+    columns:
+      - name: transaction_id
+        description: "Primary key for transaction."
+        tests:
+          - unique
+          - not_null
+
+  - name: invalid_transactions
+    description: "Quarantined invalid logs missing transaction_id or having corrupted fields."
+
+  - name: enriched_transactions
+    description: "Gold layer enriched transactions joined with payers and payees directory."
+    columns:
+      - name: transaction_id
+        description: "Primary key for enriched transaction."
+        tests:
+          - unique
+          - not_null
+      - name: amount
+        tests:
+          - not_null
