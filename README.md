@@ -19,31 +19,33 @@ This repository implements the [Google Developers Fraud Detection Codelab](https
 ```mermaid
 flowchart TD
     subgraph Ingestion ["1. Data Ingestion"]
-        A[Cloud Storage / Local JSON<br/><code>logs.json</code>] -->|Spark Serverless| B[Raw Layer<br/><code>raw_transactions</code>]
+        A["Cloud Storage / Local JSON<br>(logs.json)"] -->|"Spark Serverless"| B["Raw Layer<br>(raw_transactions)"]
     end
 
     subgraph Transformation ["2. dbt Data Quality & Modeling"]
-        B -->|dbt Deduplication| C[Staging Layer<br/><code>stg_transactions</code>]
-        B -->|Quarantine Filters| D[Quarantine Layer<br/><code>invalid_transactions</code>]
-        C & Dim1[<code>dim_payers</code>] & Dim2[<code>dim_payees</code>] -->|Dimensional Joins| E[Gold Marts<br/><code>enriched_transactions</code>]
+        B -->|"dbt Deduplication"| C["Staging Layer<br>(stg_transactions)"]
+        B -->|"Quarantine Filter"| D["Quarantine Layer<br>(invalid_transactions)"]
+        Dim1["dim_payers"] -->|"Join"| E["Gold Marts<br>(enriched_transactions)"]
+        Dim2["dim_payees"] -->|"Join"| E
+        C -->|"Join"| E
     end
 
     subgraph MachineLearning ["3. Distributed ML Training"]
-        E -->|Historically Labeled Data| F[RandomForestClassifier<br/>ML Pipeline]
-        F -->|AUC Evaluation| G[Model Registry<br/><code>fraud_model</code>]
+        E -->|"Labeled Records"| F["RandomForestClassifier<br>ML Pipeline"]
+        F -->|"AUC Evaluation"| G["Model Registry<br>(fraud_model)"]
     end
 
     subgraph Inference ["4. Batch Inference & Sinks"]
-        E -->|Unlabeled Records| H[Batch Scoring Engine]
+        E -->|"Unlabeled Records"| H["Batch Scoring Engine"]
         G --> H
-        H -->|P(Fraud) >= 50%| I[Cloud Spanner Review Queue<br/><code>SparkEvalFraudReviewQueue</code>]
+        H -->|"P(Fraud) >= 50%"| I["Cloud Spanner Review Queue<br>(SparkEvalFraudReviewQueue)"]
     end
 
     subgraph Orchestration ["5. Orchestration"]
-        J[<code>fraud_analysis_pipeline.yaml</code>] -->|Compiled DAG| K[Apache Airflow Scheduler]
-        K -.-> Ingestion
-        K -.-> Transformation
-        K -.-> Inference
+        J["fraud_analysis_pipeline.yaml"] -->|"Compiled DAG"| K["Apache Airflow Scheduler"]
+        K -.->|"Task 1"| Ingestion
+        K -.->|"Task 2"| Transformation
+        K -.->|"Task 3"| Inference
     end
 ```
 
